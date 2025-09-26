@@ -1,5 +1,7 @@
 # HollowKnight
 Fan-made Hollow Knight tools and trackers
+Quick links:
+[Journal Checklist](https://relishablez.github.io/HollowKnight/JournalChecklist/)
 
 ## 🔧 Tools
 
