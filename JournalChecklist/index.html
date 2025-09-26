@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hollow Knight Journal Tracker</title>
+<style>
+body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; margin: 0; padding: 1rem; }
+.container { max-width: 1000px; margin: auto; }
+h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+.controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.progress { background: #1e293b; border-radius: 9999px; height: 10px; overflow: hidden; margin-bottom: 0.25rem; }
+.progress-bar { background: #f1f5f9; height: 10px; }
+.list { border: 1px solid #334155; border-radius: 0.75rem; padding: 1rem; background: #1e293b; margin-top: 1rem; }
+.list h3 { margin-top: 0; font-size: 1.25rem; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; }
+input[type="checkbox"] { width: 18px; height: 18px; }
+.completed label { text-decoration: line-through; opacity: 0.7; }
+.share input { width: 100%; padding: 0.5rem; background:#0f172a; color:#f1f5f9; border:1px solid #334155; }
+button { padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; }
+button.primary { background: #f1f5f9; color: #0f172a; }
+button.secondary { background: #334155; color:#f1f5f9; }
+input#search { background:#0f172a; border:1px solid #334155; color:#f1f5f9; padding:0.5rem; border-radius:0.5rem; }
+.error { background: #7f1d1d; color: #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Hollow Knight - Journal Tracker</h1>
+  <p>Check off entries as you complete them. Share progress with a link!</p>
+  <div id="error-box" class="error" style="display:none;">
+    ⚠️ Error: Could not load <code>journals.js</code>. Make sure it’s in the same folder as <code>index.html</code>.
+  </div>
+
+  <div class="controls">
+    <button class="primary" onclick="selectAll()">Select all</button>
+    <button class="secondary" onclick="clearAll()">Clear all</button>
+    <input id="search" type="text" placeholder="Search journals…" oninput="render()" />
+  </div>
+  <div class="progress"><div id="progress-bar" class="progress-bar"></div></div>
+  <div id="progress-text" style="font-size:0.8rem; color:#cbd5e1;"></div>
+
+  <div class="share list">
+    <h3>Share your progress</h3>
+    <input id="share-link" readonly />
+    <button class="primary" onclick="copyLink()">Copy link</button>
+  </div>
+
+  <div class="lists" style="display:grid; gap:1rem; grid-template-columns: 1fr 1fr;">
+    <div class="list">
+      <h3 id="incomplete-title">Incomplete</h3>
+      <ul id="incomplete-list"></ul>
+    </div>
+    <div class="list">
+      <h3 id="completed-title">Completed</h3>
+      <ul id="completed-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script src="journals.js"></script>
+<script>
+let total = 0;
+let completed = new Set();
+let journals = [];
+
+function toBase64Url(bytes) {
+  let bin = String.fromCharCode.apply(null, bytes);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function fromBase64Url(str) {
+  if (!str) return new Uint8Array();
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  let bin = atob(str);
+  return new Uint8Array([...bin].map(ch => ch.charCodeAt(0)));
+}
+function encodeSelection(indices) {
+  let bytes = new Uint8Array(Math.ceil(total/8));
+  indices.forEach(i=>{ bytes[Math.floor(i/8)] |= (1<<(i%8)); });
+  return toBase64Url(bytes);
+}
+function decodeSelection(str) {
+  let bytes = fromBase64Url(str);
+  let set = new Set();
+  for(let i=0;i<total;i++){
+    if(bytes[Math.floor(i/8)] & (1<<(i%8))) set.add(i);
+  }
+  return set;
+}
+
+function loadFromURL() {
+  let params = new URLSearchParams(location.search);
+  let j = params.get('j');
+  if(j) completed = decodeSelection(j);
+}
+
+function updateURL() {
+  let params = new URLSearchParams(location.search);
+  let arr = [...completed];
+  if(arr.length){
+    params.set('j', encodeSelection(arr));
+  } else params.delete('j');
+  history.replaceState({}, '', location.pathname + '?' + params.toString());
+  document.getElementById('share-link').value = location.href;
+}
+
+function toggle(idx){
+  if(completed.has(idx)) completed.delete(idx);
+  else completed.add(idx);
+  render();
+}
+function selectAll(){ completed = new Set(journals.map((_,i)=>i)); render(); }
+function clearAll(){ completed.clear(); render(); }
+function copyLink(){
+  navigator.clipboard.writeText(location.href).then(()=>alert('Link copied!'));
+}
+
+function render(){
+  if(!journals || journals.length === 0){
+    document.getElementById("error-box").style.display = "block";
+    return;
+  }
+  document.getElementById("error-box").style.display = "none";
+
+  let q = document.getElementById('search').value.toLowerCase();
+  let incomplete = [], done = [];
+  journals.forEach((j,idx)=>{
+    if(!j.toLowerCase().includes(q)) return;
+    if(completed.has(idx)) done.push([j,idx]);
+    else incomplete.push([j,idx]);
+  });
+
+  document.getElementById('incomplete-list').innerHTML = incomplete.map(([j,i])=>
+    `<li><input type='checkbox' onchange='toggle(${i})' /> <label>${j}</label></li>`
+  ).join('');
+  document.getElementById('completed-list').innerHTML = done.map(([j,i])=>
+    `<li class='completed'><input type='checkbox' checked onchange='toggle(${i})' /> <label>${j}</label></li>`
+  ).join('');
+
+  document.getElementById('incomplete-title').textContent = `Incomplete (${incomplete.length})`;
+  document.getElementById('completed-title').textContent = `Completed (${done.length})`;
+  let pct = Math.round((completed.size/total)*100);
+  document.getElementById('progress-bar').style.width = pct+'%';
+  document.getElementById('progress-text').textContent = `${completed.size} / ${total} completed (${pct}%)`;
+
+  updateURL();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if(typeof HK_JOURNALS === 'undefined'){
+    document.getElementById("error-box").style.display = "block";
+    return;
+  }
+  journals = HK_JOURNALS.sort();
+  total = journals.length;
+  loadFromURL();
+  render();
+});
+</script>
+</body>
+</html>
