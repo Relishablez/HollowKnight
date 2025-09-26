@@ -132,12 +132,23 @@ function render(){
     else incomplete.push([j,idx]);
   });
 
-  document.getElementById('incomplete-list').innerHTML = incomplete.map(([j,i])=>
-    `<li><input type='checkbox' onchange='toggle(${i})' /> <label>${j}</label></li>`
-  ).join('');
-  document.getElementById('completed-list').innerHTML = done.map(([j,i])=>
-    `<li class='completed'><input type='checkbox' checked onchange='toggle(${i})' /> <label>${j}</label></li>`
-  ).join('');
+  // Incomplete list
+  document.getElementById('incomplete-list').innerHTML = incomplete.map(([j,i])=>{
+    const id = `chk-${i}`;
+    return `<li>
+      <input id='${id}' type='checkbox' onchange='toggle(${i})' />
+      <label for='${id}'>${j}</label>
+    </li>`;
+  }).join('');
+
+  // Completed list
+  document.getElementById('completed-list').innerHTML = done.map(([j,i])=>{
+    const id = `chk-${i}`;
+    return `<li class='completed'>
+      <input id='${id}' type='checkbox' checked onchange='toggle(${i})' />
+      <label for='${id}'>${j}</label>
+    </li>`;
+  }).join('');
 
   document.getElementById('incomplete-title').textContent = `Incomplete (${incomplete.length})`;
   document.getElementById('completed-title').textContent = `Completed (${done.length})`;
@@ -147,6 +158,7 @@ function render(){
 
   updateURL();
 }
+
 
 window.addEventListener('DOMContentLoaded', () => {
   if(typeof HK_JOURNALS === 'undefined'){
