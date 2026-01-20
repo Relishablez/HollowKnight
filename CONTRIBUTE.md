@@ -28,12 +28,12 @@ This is a fan-made collection of Hollow Knight tools, and all contributions are 
 ## ✅ Guidelines
 - All changes must go through a Pull Request (direct pushes to `main` are blocked).  
 - At least **1 approval** is required before merging.  
-- Keep commit/PR titles descriptive (e.g. *“Fix broken link in README”*).  
+- Keep commit/PR titles descriptive (e.g. *"Fix broken link in README"*).  
 
 ---
 
 ## 🐛 Reporting Issues
-- Use the [Issues tab](../../issues) to report bugs or suggest features.  
+- Use the [Issues tab](https://github.com/relishablez/HollowKnight/issues) to report bugs or suggest features.  
 - Please be clear and include steps/screenshots if possible.
 
 ---
