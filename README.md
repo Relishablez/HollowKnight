@@ -4,7 +4,7 @@ Fan-made Hollow Knight tools and trackers
 ---
 
 ## 🔗 Quick Links
-1. [Journal Checklist](https://relishablez.github.io/HollowKnight/JournalChecklist/)
+1. [Journal Checklist](https://relishablez.github.io/HollowKnight/)
 
 ---
 
@@ -17,7 +17,7 @@ Track your progress through all 152 Hollow Knight journal entries
 - 🔗 Share your progress with a link
 
 **Live demo:**  
-👉 [Journal Checklist](https://relishablez.github.io/HollowKnight/JournalChecklist/)
+👉 [Journal Checklist](https://relishablez.github.io/HollowKnight/)
 
 ---
 
